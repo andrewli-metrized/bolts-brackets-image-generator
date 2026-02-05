@@ -1,0 +1,6 @@
+{
+  "name": "Welding Augmentation",
+  "description": "Upload pictures of hardware for generating data for object detection",
+  "requestFramePermissions": [],
+  "prompt": ""
+}
