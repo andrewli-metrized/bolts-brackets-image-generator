@@ -32,7 +32,7 @@ const App: React.FC = () => {
   
   // New State for "Active Asset" flow
   const [activeAsset, setActiveAsset] = useState<{file: File, info: AssetItem} | null>(null);
-  const [selectedRatio, setSelectedRatio] = useState("16:9");
+  // selectedRatio is now implicitly handled by the image itself
   const [isCropping, setIsCropping] = useState(false);
 
   useEffect(() => {
@@ -48,8 +48,7 @@ const App: React.FC = () => {
 
   const currentProject = useMemo(() => history[currentIndex] || null, [history, currentIndex]);
 
-  const handleModelFinalized = (url: string, ratio: string) => {
-    setSelectedRatio(ratio);
+  const handleModelFinalized = (url: string) => {
     const initialState: ProjectState = {
       id: `state-${Date.now()}`,
       imageUrl: url,
@@ -82,6 +81,16 @@ const App: React.FC = () => {
     setCurrentIndex(newHistory.length - 1);
   };
 
+  const handleExport = () => {
+    if (!currentProject) return;
+    const link = document.createElement('a');
+    link.href = currentProject.imageUrl;
+    link.download = `welding-aug-${Date.now()}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   // Step 1: User selects an asset from the panel
   const handleAssetSelect = (assetFile: File, assetInfo: AssetItem) => {
     if (isLoading) return;
@@ -98,7 +107,7 @@ const App: React.FC = () => {
     setError(null);
     
     try {
-      const newUrl = await placeObjectInBox(currentProject.imageUrl, activeAsset.file, box, selectedRatio);
+      const newUrl = await placeObjectInBox(currentProject.imageUrl, activeAsset.file, box);
       addHistoryState(newUrl, `Added ${activeAsset.info.name}`, [...currentProject.assetsApplied, activeAsset.info]);
     } catch (err) {
       setError(getFriendlyErrorMessage(err, 'Placement failed'));
@@ -114,7 +123,7 @@ const App: React.FC = () => {
     setLoadingMessage(`Removing selected region...`);
     setError(null);
     try {
-      const newUrl = await removeObject(currentProject.imageUrl, box, selectedRatio);
+      const newUrl = await removeObject(currentProject.imageUrl, box);
       addHistoryState(newUrl, `Removed object`, currentProject.assetsApplied);
     } catch (err) {
       setError(getFriendlyErrorMessage(err, 'Removal failed'));
@@ -129,7 +138,7 @@ const App: React.FC = () => {
     setLoadingMessage(`Augmenting environment...`);
     setError(null);
     try {
-      const newUrl = await modifyRoomWithPrompt(currentProject.imageUrl, userPrompt, selectedRatio);
+      const newUrl = await modifyRoomWithPrompt(currentProject.imageUrl, userPrompt);
       addHistoryState(newUrl, "Environment Mod", currentProject.assetsApplied);
     } catch (err) {
       setError(getFriendlyErrorMessage(err, 'Modification failed'));
@@ -188,6 +197,7 @@ const App: React.FC = () => {
                   loadingMessage={loadingMessage}
                   onStartOver={() => setHistory([])}
                   onOpenCrop={() => setIsCropping(true)}
+                  onExport={handleExport}
                   onRemoveObject={handleRemoveObject}
                   onPlaceObject={handlePlaceObject}
                   activeAssetId={activeAsset?.info.id || null}

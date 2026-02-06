@@ -13,32 +13,30 @@ import { UploadCloudIcon, ChevronRightIcon } from './icons';
 import Spinner from './Spinner';
 
 interface StartScreenProps {
-  onModelFinalized: (modelUrl: string, ratio: string) => void;
+  onModelFinalized: (modelUrl: string) => void;
 }
-
-const RATIOS = ["1:1", "16:9", "9:16", "3:4", "4:3"];
 
 const StartScreen: React.FC<StartScreenProps> = ({ onModelFinalized }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
-  const [selectedRatio, setSelectedRatio] = useState("16:9");
 
   const startGeneration = useCallback(async (imageFile: File) => {
     setIsLoading(true);
     setError(null);
-    setLoadingMessage('Preparing factory environment...');
+    setLoadingMessage('Loading background...');
 
     try {
-      const generatedUrl = await generateRoomBase(imageFile, selectedRatio);
+      // Now acts as a simple pass-through/resize
+      const generatedUrl = await generateRoomBase(imageFile);
       setPreviewImage(generatedUrl);
     } catch (err) {
       setError(getFriendlyErrorMessage(err, 'Failed to process image'));
     } finally {
       setIsLoading(false);
     }
-  }, [selectedRatio]);
+  }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -66,13 +64,13 @@ const StartScreen: React.FC<StartScreenProps> = ({ onModelFinalized }) => {
           </motion.div>
         ) : previewImage ? (
           <motion.div key="preview" className="flex flex-col items-center gap-8 w-full max-w-4xl">
-            <h1 className="text-3xl font-sans font-bold tracking-tight text-gray-900">Environment Ready</h1>
+            <h1 className="text-3xl font-sans font-bold tracking-tight text-gray-900">Background Ready</h1>
             <div className={`w-full max-w-2xl rounded-xl overflow-hidden shadow-2xl border border-gray-200 bg-gray-50 flex items-center justify-center`}>
               <img src={previewImage} className="w-full h-full object-contain" alt="Base Factory" />
             </div>
             <div className="flex gap-4">
               <button onClick={() => setPreviewImage(null)} className="px-8 py-3 rounded-md border border-gray-300 font-bold hover:bg-gray-50 text-sm">Back</button>
-              <button onClick={() => onModelFinalized(previewImage, selectedRatio)} className="px-12 py-3 bg-blue-600 text-white rounded-md flex items-center gap-2 font-bold shadow-lg hover:bg-blue-700 transition-colors text-sm">
+              <button onClick={() => onModelFinalized(previewImage)} className="px-12 py-3 bg-blue-600 text-white rounded-md flex items-center gap-2 font-bold shadow-lg hover:bg-blue-700 transition-colors text-sm">
                 Start Augmentation <ChevronRightIcon className="w-4 h-4" />
               </button>
             </div>
@@ -81,27 +79,7 @@ const StartScreen: React.FC<StartScreenProps> = ({ onModelFinalized }) => {
           <motion.div key="intro" className="flex flex-col items-center w-full">
             <div className="max-w-2xl text-center mb-12">
               <h1 className="text-5xl font-sans font-bold mb-6 tracking-tight text-gray-900">Synthetic Data Gen</h1>
-              <p className="text-lg text-gray-500">Upload a factory or assembly line background to begin generating training data.</p>
-            </div>
-
-            {/* Aspect Ratio Picker */}
-            <div className="flex flex-col items-center gap-4 mb-10 w-full">
-               <p className="text-xs font-bold tracking-widest text-gray-400 uppercase">Output Resolution</p>
-               <div className="flex flex-wrap justify-center gap-2">
-                  {RATIOS.map(ratio => (
-                    <button
-                      key={ratio}
-                      onClick={() => setSelectedRatio(ratio)}
-                      className={`px-4 py-2 rounded-md border font-medium text-sm transition-all ${
-                        selectedRatio === ratio 
-                        ? "bg-gray-900 text-white border-gray-900" 
-                        : "bg-white text-gray-500 border-gray-200 hover:border-gray-300"
-                      }`}
-                    >
-                      {ratio}
-                    </button>
-                  ))}
-               </div>
+              <p className="text-lg text-gray-500">Upload a factory or assembly line background to begin.</p>
             </div>
 
             <label className="w-full max-w-lg aspect-video rounded-xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 hover:border-blue-500 transition-all mb-12 group">

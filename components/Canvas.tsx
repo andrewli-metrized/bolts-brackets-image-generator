@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
 */
 import React, { useRef, useState, useEffect } from 'react';
-import { RotateCcwIcon, EraserIcon, MousePointerIcon, Trash2Icon } from './icons';
+import { RotateCcwIcon, EraserIcon, MousePointerIcon, Trash2Icon, DownloadIcon } from './icons';
 import Spinner from './Spinner';
 import { AnimatePresence, motion } from 'framer-motion';
 
@@ -14,6 +14,7 @@ interface CanvasProps {
   isLoading: boolean;
   loadingMessage: string;
   onOpenCrop: () => void;
+  onExport: () => void;
   onRemoveObject: (box: { x: number; y: number; width: number; height: number }) => void;
   onPlaceObject: (box: { x: number; y: number; width: number; height: number }) => void;
   activeAssetId: string | null;
@@ -27,6 +28,7 @@ const Canvas: React.FC<CanvasProps> = ({
   isLoading, 
   loadingMessage,
   onOpenCrop,
+  onExport,
   onRemoveObject,
   onPlaceObject,
   activeAssetId
@@ -78,12 +80,7 @@ const Canvas: React.FC<CanvasProps> = ({
              onPlaceObject(selectionBox);
              setSelectionBox(null);
          } else {
-             // Keep box but maybe flash a warning (handled by parent or just ignored)
-             // For now, we clear it if no asset is selected to avoid confusion, 
-             // but effectively we just leave it so they can see they drew something 
-             // and then realize they need to pick an asset. 
-             // Let's actually keep the box visible until they select an asset or cancel?
-             // Simplest: Auto-cancel if no asset.
+             // Keep box but maybe flash a warning
              alert("Please select a hardware part from the inventory first.");
              setSelectionBox(null);
          }
@@ -118,12 +115,21 @@ const Canvas: React.FC<CanvasProps> = ({
             New Background
         </button>
         {displayImageUrl && !isLoading && (
-          <button 
-            onClick={onOpenCrop}
-            className="flex items-center justify-center text-center bg-gray-800 border border-transparent text-white font-semibold py-2 px-4 rounded-md transition-all duration-200 ease-in-out hover:bg-black text-xs shadow-sm"
-          >
-            Crop Output
-          </button>
+          <>
+            <button 
+                onClick={onOpenCrop}
+                className="flex items-center justify-center text-center bg-white/90 border border-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-md transition-all duration-200 ease-in-out hover:bg-white hover:border-gray-400 text-xs shadow-sm"
+            >
+                Crop Output
+            </button>
+            <button 
+                onClick={onExport}
+                className="flex items-center justify-center text-center bg-blue-600 border border-transparent text-white font-semibold py-2 px-4 rounded-md transition-all duration-200 ease-in-out hover:bg-blue-700 text-xs shadow-sm"
+            >
+                <DownloadIcon className="w-3 h-3 mr-2" />
+                Export
+            </button>
+          </>
         )}
       </div>
 

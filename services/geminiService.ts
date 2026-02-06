@@ -42,46 +42,21 @@ const handleApiResponse = (response: GenerateContentResponse): string => {
 
 const model = 'gemini-3-pro-image-preview';
 
+// Changed: No longer calls Gemini. Just prepares the uploaded image.
 export const generateRoomBase = async (
-  roomImage: File, 
-  ratio: string = "16:9"
+  roomImage: File
 ): Promise<string> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
   const dataUrl = await fileToDataUrl(roomImage);
-  
-  // Just resize to a reasonable max dimension, preserving original aspect ratio
-  const resized = await resizeImage(dataUrl, 1600, 1600);
-  const part = dataUrlToPart(resized);
-
-  const prompt = `
-    You are an industrial data augmentation specialist. 
-    Your task is to prepare the uploaded factory/workshop image for object detection data generation.
-
-    Directives:
-    1. ANALYZE the reference image's lighting, metallic surfaces, and depth.
-    2. CLEAN UP: Remove any blurred foreground obstructions if they interfere with the main assembly line view.
-    3. PRESERVE: Keep the machinery, conveyor belts, and existing background equipment exactly as is.
-    4. QUALITY: Ensure the output is high-fidelity photorealistic.
-    
-    Output the final image in ${ratio} aspect ratio, cropping or extending as needed.
-    Return ONLY the final image.`;
-
-  const response = await ai.models.generateContent({
-    model,
-    contents: { parts: [part, { text: prompt }] },
-    config: {
-        imageConfig: { aspectRatio: ratio as any }
-    },
-  });
-
-  return handleApiResponse(response);
+  // Resize to a manageable size for subsequent AI operations, preserving aspect ratio.
+  // 1920px is a good balance for quality and token usage.
+  return resizeImage(dataUrl, 1920, 1920);
 };
 
 export const placeObjectInBox = async (
     roomImageUrl: string, 
     assetImage: File, 
     box: { x: number; y: number; width: number; height: number },
-    ratio: string = "16:9"
+    ratio: string = "16:9" // kept for interface compatibility, but effectively controlled by input image
 ): Promise<string> => {
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
     
@@ -108,15 +83,12 @@ export const placeObjectInBox = async (
     4. LIGHTING: Cast accurate shadows based on the factory's overhead lighting.
     5. OCCLUSION: If the bounding box implies the object is behind a pipe or wire, handle the occlusion naturally.
     
-    Maintain aspect ratio: ${ratio}.
     Return ONLY the final composited image.`;
 
     const response = await ai.models.generateContent({
         model,
         contents: { parts: [roomPart, assetPart, { text: prompt }] },
-        config: {
-            imageConfig: { aspectRatio: ratio as any }
-        },
+        // Removed explicit aspectRatio config to default to input image ratio
     });
     return handleApiResponse(response);
 };
@@ -141,15 +113,11 @@ export const removeObject = async (
     1. Inpainting: Fill with machinery, floor, or walls that match the factory pattern.
     2. Seamlessness: The result must be invisible.
     
-    Maintain the aspect ratio of ${ratio}.
     Return ONLY the final edited image.`;
 
     const response = await ai.models.generateContent({
         model,
         contents: { parts: [roomPart, { text: prompt }] },
-        config: {
-            imageConfig: { aspectRatio: ratio as any }
-        },
     });
     return handleApiResponse(response);
 };
@@ -164,15 +132,11 @@ export const modifyRoomWithPrompt = async (
 
     const prompt = `You are an AI industrial environment editor. Modify the provided image: "${userPrompt}". 
     Focus on realistic factory conditions (safety markings, lighting, wear and tear).
-    Maintain the aspect ratio as ${ratio}.
     Return ONLY the updated image.`;
 
     const response = await ai.models.generateContent({
         model,
         contents: { parts: [roomPart, { text: prompt }] },
-        config: {
-            imageConfig: { aspectRatio: ratio as any }
-        },
     });
     return handleApiResponse(response);
 };
