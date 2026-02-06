@@ -11,6 +11,7 @@ import Canvas from './components/Canvas';
 import AssetPanel from './components/WardrobePanel'; 
 import VersionHistoryPanel from './components/SavedLooksPanel'; 
 import ProjectStack from './components/OutfitStack'; 
+import WardrobeModal from './components/WardrobeModal';
 import { placeObjectInBox, modifyRoomWithPrompt, removeObject } from './services/geminiService';
 import { AssetItem, ProjectState } from './types';
 import { RefreshCwIcon, XIcon } from './components/icons';
@@ -32,8 +33,8 @@ const App: React.FC = () => {
   
   // New State for "Active Asset" flow
   const [activeAsset, setActiveAsset] = useState<{file: File, info: AssetItem} | null>(null);
-  // selectedRatio is now implicitly handled by the image itself
   const [isCropping, setIsCropping] = useState(false);
+  const [isAssetModalOpen, setIsAssetModalOpen] = useState(false);
 
   useEffect(() => {
     const checkApiKey = async () => {
@@ -58,6 +59,8 @@ const App: React.FC = () => {
     };
     setHistory([initialState]);
     setCurrentIndex(0);
+    // Open the asset selection modal immediately so the user can pick their target object
+    setIsAssetModalOpen(true);
   };
 
   const handleRestoreVersion = (stateId: string) => {
@@ -91,10 +94,11 @@ const App: React.FC = () => {
     document.body.removeChild(link);
   };
 
-  // Step 1: User selects an asset from the panel
+  // Step 1: User selects an asset from the panel or modal
   const handleAssetSelect = (assetFile: File, assetInfo: AssetItem) => {
     if (isLoading) return;
     setActiveAsset({ file: assetFile, info: assetInfo });
+    setIsAssetModalOpen(false); // Close modal if open
     setError(null);
   };
 
@@ -273,6 +277,15 @@ const App: React.FC = () => {
                 />
               )}
             </AnimatePresence>
+            
+            <WardrobeModal 
+                isOpen={isAssetModalOpen}
+                onClose={() => setIsAssetModalOpen(false)}
+                onGarmentSelect={handleAssetSelect}
+                activeGarmentIds={activeAsset ? [activeAsset.info.id] : []}
+                isLoading={isLoading}
+                wardrobe={defaultAssets}
+            />
           </motion.div>
           </>
         )}
