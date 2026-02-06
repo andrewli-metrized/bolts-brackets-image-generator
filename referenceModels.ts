@@ -12,23 +12,23 @@ export interface ReferenceRoom {
 
 export const referenceRooms: ReferenceRoom[] = [
   {
-    id: 'room-2',
-    name: 'Modern Living',
-    url: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&q=80&w=800',
+    id: 'factory-1',
+    name: 'Assembly Line',
+    url: 'https://images.unsplash.com/photo-1565043589221-1a6fd9ae45c7?auto=format&fit=crop&q=80&w=1200',
   },
   {
-    id: 'room-3',
-    name: 'Minimal Bedroom',
-    url: 'https://images.unsplash.com/photo-1540518614846-7eded433c457?auto=format&fit=crop&q=80&w=800',
+    id: 'factory-2',
+    name: 'Welding Station',
+    url: 'https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&q=80&w=1200',
   },
   {
-    id: 'room-4',
-    name: 'Elevated Living',
-    url: 'https://i.imgur.com/DCNoHez.jpeg',
+    id: 'factory-3',
+    name: 'Metal Workshop',
+    url: 'https://images.unsplash.com/photo-1533230635465-c3cd8f1dfc5b?auto=format&fit=crop&q=80&w=1200',
   },
   {
-    id: 'room-5',
-    name: 'Elevated Home Office',
-    url: 'https://i.imgur.com/CODj3Ms.jpeg',
+    id: 'factory-4',
+    name: 'Conveyor Belt',
+    url: 'https://images.unsplash.com/photo-1596489397637-b4d2938817a5?auto=format&fit=crop&q=80&w=1200',
   }
 ];

@@ -8,23 +8,23 @@ import { AssetItem } from './types';
 
 export const defaultAssets: AssetItem[] = [
   {
-    id: 'eq3-chair-1',
-    name: 'Modern Chair',
-    url: 'https://i.imgur.com/VdkPWrc.jpeg',
+    id: 'ind-bracket-1',
+    name: 'Steel Bracket',
+    url: 'https://images.unsplash.com/photo-1535063406936-ab6c04f99580?auto=format&fit=crop&q=80&w=300',
   },
   {
-    id: 'eq3-sofa-1',
-    name: 'Sofa',
-    url: 'https://i.imgur.com/NExlYwA.jpeg',
+    id: 'ind-bolt-1',
+    name: 'Hex Bolt',
+    url: 'https://images.unsplash.com/photo-1585338107529-13c91f68e4c7?auto=format&fit=crop&q=80&w=300',
   },
   {
-    id: 'eq3-couch-1',
-    name: 'Couch',
-    url: 'https://i.imgur.com/gZwsV76.jpeg',
+    id: 'ind-gear-1',
+    name: 'Industrial Gear',
+    url: 'https://images.unsplash.com/photo-1589761665793-12502847c50a?auto=format&fit=crop&q=80&w=300',
   },
   {
-    id: 'eq3-bed-1',
-    name: 'Bed',
-    url: 'https://i.imgur.com/ZS7Uc5S.jpeg',
+    id: 'ind-valve-1',
+    name: 'Pressure Valve',
+    url: 'https://images.unsplash.com/photo-1574689049282-e25f69668d2f?auto=format&fit=crop&q=80&w=300',
   }
 ];

@@ -1,6 +1,6 @@
 {
   "name": "Welding Augmentation",
-  "description": "Upload pictures of hardware for generating data for object detection",
+  "description": "Generate synthetic training data for assembly lines by seamlessly integrating hardware into factory backgrounds.",
   "requestFramePermissions": [],
   "prompt": ""
 }

@@ -5,7 +5,7 @@
 */
 
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
-import { letterboxImage, resizeImage } from '../lib/utils';
+import { resizeImage } from '../lib/utils';
 
 const fileToDataUrl = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -42,11 +42,6 @@ const handleApiResponse = (response: GenerateContentResponse): string => {
 
 const model = 'gemini-3-pro-image-preview';
 
-const parseAspectRatio = (ratio: string): number => {
-  const [w, h] = ratio.split(':').map(Number);
-  return w / h;
-};
-
 export const generateRoomBase = async (
   roomImage: File, 
   ratio: string = "16:9"
@@ -59,15 +54,14 @@ export const generateRoomBase = async (
   const part = dataUrlToPart(resized);
 
   const prompt = `
-    You are an expert AI interior design visualizer. 
-    Your task is to generate an empty "Architectural Shell" based on the uploaded reference image.
+    You are an industrial data augmentation specialist. 
+    Your task is to prepare the uploaded factory/workshop image for object detection data generation.
 
     Directives:
-    1. ANALYZE the reference image's architectural style, lighting direction, and material textures (flooring, wall paint, window treatments).
-    2. REMOVE all distinct furniture (sofas, tables, chairs, beds) and freestanding decor (rugs, lamps, plants).
-    3. PRESERVE the structural integrity: keep walls, windows, ceilings, and built-in fixtures (like fireplaces or recessed shelves) exactly as they are.
-    4. RECONSTRUCT the empty space: seamlessy extend the flooring and wall textures into the areas where furniture was removed.
-    5. LIGHTING: Strictly maintain the original lighting mood, shadows, and color temperature of the reference image.
+    1. ANALYZE the reference image's lighting, metallic surfaces, and depth.
+    2. CLEAN UP: Remove any blurred foreground obstructions if they interfere with the main assembly line view.
+    3. PRESERVE: Keep the machinery, conveyor belts, and existing background equipment exactly as is.
+    4. QUALITY: Ensure the output is high-fidelity photorealistic.
     
     Output the final image in ${ratio} aspect ratio, cropping or extending as needed.
     Return ONLY the final image.`;
@@ -83,10 +77,10 @@ export const generateRoomBase = async (
   return handleApiResponse(response);
 };
 
-export const placeFurniture = async (
+export const placeObjectInBox = async (
     roomImageUrl: string, 
     assetImage: File, 
-    coord: { x: number; y: number },
+    box: { x: number; y: number; width: number; height: number },
     ratio: string = "16:9"
 ): Promise<string> => {
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
@@ -95,19 +89,24 @@ export const placeFurniture = async (
     const assetDataUrl = await fileToDataUrl(assetImage);
     const assetPart = dataUrlToPart(assetDataUrl);
 
-    const prompt = `You are a world-class interior designer and spatial artist. 
-    Task: Place the furniture piece from the 'asset image' into the 'room image'.
+    // Calculate coordinates for prompt
+    const y2 = box.y + box.height;
+    const x2 = box.x + box.width;
+
+    const prompt = `You are a synthetic data generator for computer vision training.
     
-    Location: Place the object centered at these normalized coordinates: X=${coord.x.toFixed(1)}%, Y=${coord.y.toFixed(1)}%.
-    Note: These percentages are relative to the top-left corner of the image. 
-    Interpret the Y coordinate as the ground-contact point for the furniture base.
+    Task: Insert the industrial hardware object (from the asset image) into the factory scene (the background image).
     
-    Rules for Visual Fidelity:
-    1. STRICTURE POSE PRESERVATION: Do NOT change the angle or rotation of the furniture. It must be placed in the room exactly as it appears in the 'asset image' thumbnail. If it is side-on, place it side-on. If it is front-facing, place it front-facing.
-    2. Orientation: Match the perspective of the asset to the room's floor plane.
-    3. Realistic Scale: Ensure the object is sized correctly according to the room's architecture.
-    4. Environment Mapping: Apply realistic shadows, reflections, and ambient occlusion that match the room's lighting source.
-    5. Integrity: Do not alter any other part of the room background.
+    Bounding Box Location (Normalized 0-100%):
+    Top: ${box.y.toFixed(1)}%, Left: ${box.x.toFixed(1)}%
+    Bottom: ${y2.toFixed(1)}%, Right: ${x2.toFixed(1)}%
+    
+    Directives:
+    1. INTEGRATION: The object must physically sit within the defined bounding box.
+    2. PERSPECTIVE MATCHING: Align the object's perspective with the factory floor or machinery surface it is placed on.
+    3. MATERIALITY: Apply realistic metallic reflections, rust, or grease marks to match the surrounding industrial environment.
+    4. LIGHTING: Cast accurate shadows based on the factory's overhead lighting.
+    5. OCCLUSION: If the bounding box implies the object is behind a pipe or wire, handle the occlusion naturally.
     
     Maintain aspect ratio: ${ratio}.
     Return ONLY the final composited image.`;
@@ -133,16 +132,16 @@ export const removeObject = async (
     const x2 = box.x + box.width;
     const y2 = box.y + box.height;
 
-    const prompt = `You are an AI image editor specializing in interior photography.
-    Your task is to REMOVE the object within the specified region and seamlessly inpaint the background.
+    const prompt = `You are an AI image editor.
+    Your task is to REMOVE the object within the specified region and seamlessly inpaint the factory background.
     
-    Region (Normalized 0-100%): Top: ${box.y.toFixed(1)}%, Left: ${box.x.toFixed(1)}%, Bottom: ${y2.toFixed(1)}%, Right: ${x2.toFixed(1)}%.
+    Region: Top: ${box.y.toFixed(1)}%, Left: ${box.x.toFixed(1)}%, Bottom: ${y2.toFixed(1)}%, Right: ${x2.toFixed(1)}%.
     
     Rules:
-    1. Inpainting: Fill the removal area with textures that perfectly match the surrounding environment (walls, floor, shadows).
-    2. Seamlessness: The result must be completely invisible.
-    3. Integrity: Do not change anything else in the image.
-    4. Maintain the aspect ratio of ${ratio}.
+    1. Inpainting: Fill with machinery, floor, or walls that match the factory pattern.
+    2. Seamlessness: The result must be invisible.
+    
+    Maintain the aspect ratio of ${ratio}.
     Return ONLY the final edited image.`;
 
     const response = await ai.models.generateContent({
@@ -163,9 +162,9 @@ export const modifyRoomWithPrompt = async (
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
     const roomPart = dataUrlToPart(roomImageUrl);
 
-    const prompt = `You are an AI interior renderer. Modify the provided room image based on this request: "${userPrompt}". 
-    Maintain the overall perspective and structure of the room. 
-    Keep the aspect ratio as ${ratio}.
+    const prompt = `You are an AI industrial environment editor. Modify the provided image: "${userPrompt}". 
+    Focus on realistic factory conditions (safety markings, lighting, wear and tear).
+    Maintain the aspect ratio as ${ratio}.
     Return ONLY the updated image.`;
 
     const response = await ai.models.generateContent({
