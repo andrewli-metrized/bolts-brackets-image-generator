@@ -9,7 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { referenceRooms } from '../referenceModels';
 import { generateRoomBase } from '../services/geminiService';
 import { getFriendlyErrorMessage, urlToFile } from '../lib/utils';
-import { UploadCloudIcon, ChevronRightIcon } from './icons';
+import { UploadCloudIcon } from './icons';
 import Spinner from './Spinner';
 
 interface StartScreenProps {
@@ -20,23 +20,21 @@ const StartScreen: React.FC<StartScreenProps> = ({ onModelFinalized }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   const startGeneration = useCallback(async (imageFile: File) => {
     setIsLoading(true);
     setError(null);
-    setLoadingMessage('Loading background...');
+    setLoadingMessage('Processing background...');
 
     try {
-      // Now acts as a simple pass-through/resize
+      // Process image and immediately callback to parent to switch screens
       const generatedUrl = await generateRoomBase(imageFile);
-      setPreviewImage(generatedUrl);
+      onModelFinalized(generatedUrl);
     } catch (err) {
       setError(getFriendlyErrorMessage(err, 'Failed to process image'));
-    } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [onModelFinalized]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -61,19 +59,6 @@ const StartScreen: React.FC<StartScreenProps> = ({ onModelFinalized }) => {
           <motion.div key="loading" className="flex flex-col items-center">
             <Spinner />
             <p className="mt-4 text-xl font-sans font-medium text-gray-700">{loadingMessage}</p>
-          </motion.div>
-        ) : previewImage ? (
-          <motion.div key="preview" className="flex flex-col items-center gap-8 w-full max-w-4xl">
-            <h1 className="text-3xl font-sans font-bold tracking-tight text-gray-900">Background Ready</h1>
-            <div className={`w-full max-w-2xl rounded-xl overflow-hidden shadow-2xl border border-gray-200 bg-gray-50 flex items-center justify-center`}>
-              <img src={previewImage} className="w-full h-full object-contain" alt="Base Factory" />
-            </div>
-            <div className="flex gap-4">
-              <button onClick={() => setPreviewImage(null)} className="px-8 py-3 rounded-md border border-gray-300 font-bold hover:bg-gray-50 text-sm">Back</button>
-              <button onClick={() => onModelFinalized(previewImage)} className="px-12 py-3 bg-blue-600 text-white rounded-md flex items-center gap-2 font-bold shadow-lg hover:bg-blue-700 transition-colors text-sm">
-                Start Augmentation <ChevronRightIcon className="w-4 h-4" />
-              </button>
-            </div>
           </motion.div>
         ) : (
           <motion.div key="intro" className="flex flex-col items-center w-full">
